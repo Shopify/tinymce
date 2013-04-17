@@ -520,8 +520,8 @@
 								if (elementRule.paddEmpty)
 									node.empty().append(new Node('#text', '3')).value = '\u00a0';
 								else {
-									// Leave nodes that have a name like <a name="name">
-									if (!node.attributes.map.name && !node.attributes.map.id) {
+									// Leave nodes that have a name like <a name="name"> or a class like <a class="class"></a>
+									if (!node.attributes.map.name && !node.attributes.map.id && !node.attributes.map['class']) {
 										tempNode = node.parent;
 										node.empty().remove();
 										node = tempNode;

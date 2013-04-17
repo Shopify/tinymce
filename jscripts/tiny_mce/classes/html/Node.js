@@ -415,11 +415,11 @@
 						if (elements[node.name])
 							return false;
 
-						// Keep elements with data attributes or name attribute like <a name="1"></a>
+						// Keep elements with data attributes or name attribute like <a name="1"></a> or class attribute like <a class="1"></a>
 						i = node.attributes.length;
 						while (i--) {
 							name = node.attributes[i].name;
-							if (name === "name" || name.indexOf('data-mce-') === 0)
+							if (name === "name" || name === "class" || name.indexOf('data-mce-') === 0)
 								return false;
 						}
 					}
