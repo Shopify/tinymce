@@ -559,6 +559,12 @@
 			}
 
 			// Create iframe
+
+			// Prevent chrome from GC'ing when creating iframe
+			if ($.browser.chrome && !!window.chrome) {
+				u = u || 'about:blank';
+			}
+
 			// TODO: ACC add the appropriate description on this.
 			n = DOM.add(o.iframeContainer, 'iframe', { 
 				id : t.id + "_ifr",
