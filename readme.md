@@ -1,5 +1,6 @@
-TinyMCE - The JavaScript Rich Text editor
+TinyMCE for Shopify 
 ==========================================
+This is a fork of [https://github.com/tinymce/tinymce](TinyMCE) customized to suit Shopify's specific needs. 
 
 Building TinyMCE
 -----------------
@@ -38,7 +39,3 @@ Bundle themes and plugins into core example
 -------------------------------------------
 `jake minify bundle[themes:modern,plugins:table,paste]`
 Minifies the core, adds the modern theme and adds the table and paste plugin into tinymce.min.js.
-
-Contributing to the TinyMCE project
-------------------------------------
-You can read more about how to contribute to this project at [http://www.tinymce.com/develop/contributing.php](http://www.tinymce.com/develop/contributing.php)
