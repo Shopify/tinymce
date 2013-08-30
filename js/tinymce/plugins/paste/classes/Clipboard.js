@@ -21,7 +21,11 @@ define("tinymce/pasteplugin/Clipboard", [
 ], function(Env, Tools, VK) {
 	function hasClipboardData() {
 		// Gecko is excluded until the fix: https://bugzilla.mozilla.org/show_bug.cgi?id=850663
-		return !Env.gecko && (("ClipboardEvent" in window) || (Env.webkit && "FocusEvent" in window));
+		return isMobileSafari() || (!Env.gecko && (("ClipboardEvent" in window) || (Env.webkit && "FocusEvent" in window)));
+	}
+
+	function isMobileSafari() {
+    return navigator.userAgent.match(/(iPod|iPhone|iPad)/) && navigator.userAgent.match(/AppleWebKit/);
 	}
 
 	return function(editor) {
