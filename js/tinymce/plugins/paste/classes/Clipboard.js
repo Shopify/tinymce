@@ -19,14 +19,6 @@ define("tinymce/pasteplugin/Clipboard", [
 	"tinymce/util/Tools",
 	"tinymce/util/VK"
 ], function(Env, Tools, VK) {
-	function hasClipboardData() {
-		// Gecko is excluded until the fix: https://bugzilla.mozilla.org/show_bug.cgi?id=850663
-		return isMobileSafari() || (!Env.gecko && (("ClipboardEvent" in window) || (Env.webkit && "FocusEvent" in window)));
-	}
-
-	function isMobileSafari() {
-    return navigator.userAgent.match(/(iPod|iPhone|iPad)/) && navigator.userAgent.match(/AppleWebKit/);
-	}
 
 	return function(editor) {
 		var self = this, plainTextPasteTime;
@@ -132,165 +124,159 @@ define("tinymce/pasteplugin/Clipboard", [
 				plainTextPasteTime = now();
 			}
 		});
+		
+		if (Env.ie) {
+      var keyPasteTime = 0;
 
-		// Use Clipboard API if it's available
-		if (hasClipboardData()) {
-			editor.on('paste', function(e) {
-				var clipboardData = e.clipboardData;
+      editor.on('keydown', function(e) {
+        if (isPasteKeyEvent(e) && !e.isDefaultPrevented()) {
+          // Prevent undoManager keydown handler from making an undo level with the pastebin in it
+          e.stopImmediatePropagation();
 
-				function processByContentType(contentType, processFunc) {
-					for (var ti = 0; ti < clipboardData.types.length; ti++) {
-						if (clipboardData.types[ti] == contentType) {
-							processFunc(clipboardData.getData(contentType));
-							//clipboardData.items[ti].getAsString(processFunc);
-							return true;
-						}
-					}
-				}
+          var pastebinElm = createPasteBin();
+          keyPasteTime = now();
 
-				if (clipboardData) {
-					e.preventDefault();
+          editor.dom.bind(pastebinElm, 'paste', function() {
+            setTimeout(function() {
+              editor.selection.setRng(lastRng);
+              removePasteBin(pastebinElm);
 
-					if (shouldPasteAsPlainText()) {
-						// First look for HTML then look for plain text
-						if (!processByContentType('text/plain', processText)) {
-							processByContentType('text/html', processHtml);
-						}
-					} else {
-						// First look for HTML then look for plain text
-						if (!processByContentType('text/html', processHtml)) {
-							processByContentType('text/plain', processText);
-						}
-					}
-				}
-			});
-		} else {
-			if (Env.ie) {
-				var keyPasteTime = 0;
+              if (shouldPasteAsPlainText()) {
+                processText(innerText(pastebinElm.firstChild));
+              } else {
+                processHtml(pastebinElm.firstChild.innerHTML);
+              }
+            }, 0);
+          });
 
-				editor.on('keydown', function(e) {
-					if (isPasteKeyEvent(e) && !e.isDefaultPrevented()) {
-						// Prevent undoManager keydown handler from making an undo level with the pastebin in it
-						e.stopImmediatePropagation();
+          var lastRng = editor.selection.getRng();
+          pastebinElm.firstChild.focus();
+          pastebinElm.firstChild.innerText = '';
+        }
+      });
 
-						var pastebinElm = createPasteBin();
-						keyPasteTime = now();
+      // Explorer fallback
+      editor.on('init', function() {
+        var dom = editor.dom;
 
-						editor.dom.bind(pastebinElm, 'paste', function() {
-							setTimeout(function() {
-								editor.selection.setRng(lastRng);
-								removePasteBin(pastebinElm);
+        // Use a different method if the paste was made without using the keyboard
+        // for example using the browser menu items
+        editor.dom.bind(editor.getBody(), 'paste', function(e) {
+          if (now() - keyPasteTime > 100) {
+            var gotPasteEvent, pastebinElm = createPasteBin();
 
-								if (shouldPasteAsPlainText()) {
-									processText(innerText(pastebinElm.firstChild));
-								} else {
-									processHtml(pastebinElm.firstChild.innerHTML);
-								}
-							}, 0);
-						});
+            e.preventDefault();
 
-						var lastRng = editor.selection.getRng();
-						pastebinElm.firstChild.focus();
-						pastebinElm.firstChild.innerText = '';
-					}
-				});
+            dom.bind(pastebinElm, 'paste', function(e) {
+              e.stopPropagation();
+              gotPasteEvent = true;
+            });
 
-				// Explorer fallback
-				editor.on('init', function() {
-					var dom = editor.dom;
+            var lastRng = editor.selection.getRng();
 
-					// Use a different method if the paste was made without using the keyboard
-					// for example using the browser menu items
-					editor.dom.bind(editor.getBody(), 'paste', function(e) {
-						if (now() - keyPasteTime > 100) {
-							var gotPasteEvent, pastebinElm = createPasteBin();
+            // Select the container
+            var rng = dom.doc.body.createTextRange();
+            rng.moveToElementText(pastebinElm.firstChild);
+            rng.execCommand('Paste');
+            removePasteBin(pastebinElm);
 
-							e.preventDefault();
+            if (!gotPasteEvent) {
+              editor.windowManager.alert('Please use Ctrl+V/Cmd+V keyboard shortcuts to paste contents.');
+              return;
+            }
 
-							dom.bind(pastebinElm, 'paste', function(e) {
-								e.stopPropagation();
-								gotPasteEvent = true;
-							});
+            editor.selection.setRng(lastRng);
 
-							var lastRng = editor.selection.getRng();
+            if (shouldPasteAsPlainText()) {
+              processText(innerText(pastebinElm.firstChild));
+            } else {
+              processHtml(pastebinElm.firstChild.innerHTML);
+            }
+          }
+        });
+      });
+    } else {
+      editor.on('init', function() {
+        editor.dom.bind(editor.getBody(), 'paste', function(e) {
+          var clipboardData = e.clipboardData;
 
-							// Select the container
-							var rng = dom.doc.body.createTextRange();
-							rng.moveToElementText(pastebinElm.firstChild);
-							rng.execCommand('Paste');
-							removePasteBin(pastebinElm);
+          function processByContentType(contentType, processFunc) {
+            for (var ti = 0; ti < clipboardData.types.length; ti++) {
+              if (clipboardData.types[ti] == contentType) {
+                processFunc(clipboardData.getData(contentType));
+                return true;
+              }
+            }
+          }
 
-							if (!gotPasteEvent) {
-								editor.windowManager.alert('Please use Ctrl+V/Cmd+V keyboard shortcuts to paste contents.');
-								return;
-							}
+          if (clipboardData) {
+            e.preventDefault();
 
-							editor.selection.setRng(lastRng);
+            if (shouldPasteAsPlainText()) {
+              // First look for HTML then look for plain text
+              if (!processByContentType('text/plain', processText)) {
+                processByContentType('text/html', processHtml);
+              }
+            } else {
+              // First look for HTML then look for plain text
+              if (!processByContentType('text/html', processHtml)) {
+                processByContentType('text/plain', processText);
+              }
+            }
+          } else {
+            e.preventDefault();
+            editor.windowManager.alert('Please use Ctrl+V/Cmd+V keyboard shortcuts to paste contents.');
+          }
+        });
+      });
 
-							if (shouldPasteAsPlainText()) {
-								processText(innerText(pastebinElm.firstChild));
-							} else {
-								processHtml(pastebinElm.firstChild.innerHTML);
-							}
-						}
-					});
-				});
-			} else {
-				editor.on('init', function() {
-					editor.dom.bind(editor.getBody(), 'paste', function(e) {
-						e.preventDefault();
-						editor.windowManager.alert('Please use Ctrl+V/Cmd+V keyboard shortcuts to paste contents.');
-					});
-				});
+      // Old Gecko/WebKit/Opera fallback
+      editor.on('keydown', function(e) {
+        if (isPasteKeyEvent(e) && !e.isDefaultPrevented()) {
+          // Prevent undoManager keydown handler from making an undo level with the pastebin in it
+          e.stopImmediatePropagation();
 
-				// Old Gecko/WebKit/Opera fallback
-				editor.on('keydown', function(e) {
-					if (isPasteKeyEvent(e) && !e.isDefaultPrevented()) {
-						// Prevent undoManager keydown handler from making an undo level with the pastebin in it
-						e.stopImmediatePropagation();
+          var pastebinElm = createPasteBin();
+          var lastRng = editor.selection.getRng();
 
-						var pastebinElm = createPasteBin();
-						var lastRng = editor.selection.getRng();
+          editor.selection.select(pastebinElm, true);
 
-						editor.selection.select(pastebinElm, true);
+          editor.dom.bind(pastebinElm, 'paste', function(e) {
+            e.stopPropagation();
 
-						editor.dom.bind(pastebinElm, 'paste', function(e) {
-							e.stopPropagation();
+            setTimeout(function() {
+              removePasteBin(pastebinElm);
+              editor.lastRng = lastRng;
+              editor.selection.setRng(lastRng);
 
-							setTimeout(function() {
-								removePasteBin(pastebinElm);
-								editor.lastRng = lastRng;
-								editor.selection.setRng(lastRng);
+              var pastebinContents = pastebinElm.firstChild;
 
-								var pastebinContents = pastebinElm.firstChild;
+              // Remove last BR Safari on Mac adds trailing BR
+              if (pastebinContents.lastChild && pastebinContents.lastChild.nodeName == 'BR') {
+                pastebinContents.removeChild(pastebinContents.lastChild);
+              }
 
-								// Remove last BR Safari on Mac adds trailing BR
-								if (pastebinContents.lastChild && pastebinContents.lastChild.nodeName == 'BR') {
-									pastebinContents.removeChild(pastebinContents.lastChild);
-								}
+              if (shouldPasteAsPlainText()) {
+                processText(innerText(pastebinContents));
+              } else {
+                processHtml(pastebinContents.innerHTML);
+              }
+            }, 0);
+          });
+        }
+      });
+    }
 
-								if (shouldPasteAsPlainText()) {
-									processText(innerText(pastebinContents));
-								} else {
-									processHtml(pastebinContents.innerHTML);
-								}
-							}, 0);
-						});
-					}
-				});
-			}
+    // Prevent users from dropping data images on Gecko
+    if (Env.gecko && !editor.settings.paste_data_images) {
+      editor.on('drop', function(e) {
+        var dataTransfer = e.dataTransfer;
 
-			// Prevent users from dropping data images on Gecko
-			if (!editor.settings.paste_data_images) {
-				editor.on('drop', function(e) {
-					var dataTransfer = e.dataTransfer;
-
-					if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
-						e.preventDefault();
-					}
-				});
-			}
-		}
+        if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
+          e.preventDefault();
+        }
+      });
+    }
 
 		// Block all drag/drop events
 		if (editor.paste_block_drop) {
