@@ -1552,10 +1552,10 @@ define("tinymce/Editor", [
 		 * @example
 		 * // Show progress for the active editor
 		 * tinymce.activeEditor.setProgressState(true);
-		 * 
+		 *
 		 * // Hide progress for the active editor
 		 * tinymce.activeEditor.setProgressState(false);
-		 * 
+		 *
 		 * // Show progress after 3 seconds
 		 * tinymce.activeEditor.setProgressState(true, 3000);
 		 */
@@ -1692,9 +1692,6 @@ define("tinymce/Editor", [
 					} else {
 						content = '<' + forcedRootBlockName + '><br data-mce-bogus="1"></' + forcedRootBlockName + '>';
 					}
-				} else if (!ie) {
-					// We need to add a BR when forced_root_block is disabled on non IE browsers to place the caret
-					content = '<br data-mce-bogus="1">';
 				}
 
 				body.innerHTML = content;
