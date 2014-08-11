@@ -1003,7 +1003,9 @@ define("tinymce/Editor", [
 					// WebKit needs this call to fire focusin event properly see #5948
 					// But Opera pre Blink engine will produce an empty selection so skip Opera
 					if (!Env.opera) {
-						self.getBody().focus();
+						setTimeout(function () {
+							self.getBody().focus();
+						}, 0);
 					}
 
 					self.getWin().focus();
