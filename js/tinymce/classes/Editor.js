@@ -636,12 +636,21 @@ define("tinymce/Editor", [
 			}
 
 			if (settings.content_security_policy) {
-				self.iframeHTML += '<meta http-equiv="Content-Security-Policy" content="' + settings.content_security_policy + '" />';
+				self.iframeHTML += '<meta http-equiv="Content-Security-Policy" content="' + settings.content_security_policy +'" />';
 			}
 
-			self.iframeHTML += '</head><body id="' + bodyId +
-				'" class="mce-content-body ' + bodyClass +
-				'" data-id="' + self.id + '"><br></body></html>';
+			self.iframeHTML += '</head><body id="' + bodyId + '" class="mce-content-body ' + bodyClass + '" data-id="' + self.id + '"><br></body></html>';
+
+			// Fire the 'load' event as soon as the iframe's readystate is 'complete'.
+			var fnTimer;
+			setTimeout(fnTimer = function() {
+				var state = self.getDoc().readyState;
+				if(state == "complete") {
+					self.fire('load')
+				} else {
+					setTimeout(fnTimer, 1)
+				}
+			}, 1);
 
 			/*eslint no-script-url:0 */
 			var domainRelaxUrl = 'javascript:(function(){' +
