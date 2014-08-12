@@ -629,8 +629,22 @@ define("tinymce/Editor", [
 				bodyClass = bodyClass[self.id] || '';
 			}
 
-			self.iframeHTML += '</head><body id="' + bodyId + '" class="mce-content-body ' + bodyClass + '" ' +
-				'onload="window.parent.tinymce.get(\'' + self.id + '\').fire(\'load\');"><br></body></html>';
+			if (settings.content_security_policy) {
+				self.iframeHTML += '<meta http-equiv="Content-Security-Policy" content="' + settings.content_security_policy +'" />'
+			}
+
+			self.iframeHTML += '</head><body id="' + bodyId + '" class="mce-content-body ' + bodyClass + '"><br></body></html>';
+
+			// Fire the 'load' event as soon as the iframe's readystate is 'complete'.
+			var fnTimer;
+			setTimeout(fnTimer = function() {
+				var state = self.getDoc().readyState;
+				if(state == "complete") {
+					self.fire('load')
+				} else {
+					setTimeout(fnTimer, 1)
+				}
+			}, 1)
 
 			// Domain relaxing enabled, then set document domain
 			// TODO: Fix this old stuff
