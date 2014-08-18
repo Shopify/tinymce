@@ -693,13 +693,15 @@ if (tinymce.Env.webkit) {
 		equal(editor.getContent(), '<p><span style=\"color: red; font-style: italic; text-indent: 10px;\">Test</span></p>');
 	});
 
+	/* Modified to keep with https://github.com/Shopify/shopify/pull/8208 */
 	test('paste webkit remove runtime styles (none)', function() {
 		editor.settings.paste_webkit_styles = 'none';
 		editor.setContent('');
 		editor.execCommand('mceInsertClipboardContent', false, {content: '<span style="color: red; font-style: italic; text-indent: 10px">Test</span>'});
-		equal(editor.getContent(), '<p>Test</p>');
+		equal(editor.getContent(), '<p><span>Test</span></p>');
 	});
 
+	/* Modified to keep with https://github.com/Shopify/shopify/pull/8208 */
 	test('paste webkit remove runtime styles (color) in the same (color) (named)', function() {
 		editor.settings.paste_webkit_styles = 'color';
 
@@ -713,7 +715,7 @@ if (tinymce.Env.webkit) {
 			)
 		});
 
-		equal(editor.getContent(), '<p style="color: red;">ab</p>');
+		equal(editor.getContent(), '<p style="color: red;"><span>a</span><span>b</span></p>');
 	});
 
 	test('paste webkit remove runtime styles (color) in the same (color) (hex)', function() {
@@ -728,7 +730,7 @@ if (tinymce.Env.webkit) {
 			)
 		});
 
-		equal(editor.getContent(), '<p style="color: #ff0000;">abc</p>');
+		equal(editor.getContent(), '<p style="color: #ff0000;"><span>a</span><span>b</span><span>c</span></p></p>');
 	});
 
 	test('paste webkit remove runtime styles (color) in the same (color) (rgb)', function() {
@@ -743,6 +745,6 @@ if (tinymce.Env.webkit) {
 			)
 		});
 
-		equal(editor.getContent(), '<p style="color: #ff0000;">abc</p>');
+		equal(editor.getContent(), '<p style="color: #ff0000;"><span>a</span><span>b</span><span>c</span></p>');
 	});
 }
