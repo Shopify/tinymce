@@ -58,9 +58,12 @@
 		window.global_test_results = results;
 	});
 
-	/* Custom skip override addition */
+	/* Custom QUnit skip functionality */
 	QUnit.test.skip = function( testName, expected, callback, async ) {
-		console.log('Test skipped:', testName);
+		console.log('Test skipped: ' + QUnit.config.currentModule + ': ' + testName);
+		if (callback) {
+			callback();
+		}
 	};
 
 	window.module = function(name, settings) {
