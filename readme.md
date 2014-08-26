@@ -1,6 +1,4 @@
-[![Circle CI](https://circleci.com/gh/Shopify/tinymce/tree/master.png?style=badge)](https://circleci.com/gh/Shopify/tinymce/tree/master)
-
-TinyMCE for Shopify
+TinyMCE for Shopify [![Circle CI](https://circleci.com/gh/Shopify/tinymce/tree/master.png?style=badge&circle-token=2c4ac059228c6f333b398302d18f2c05d09638a9)](https://circleci.com/gh/Shopify/tinymce/tree/master)
 ==========================================
 This is a fork of [https://github.com/tinymce/tinymce](TinyMCE) customized to suit Shopify's specific needs.
 
