@@ -323,7 +323,7 @@
 	});
 
 	/* Skip this test as contradictory to https://github.com/Shopify/shopify/pull/8208 */
-	/*test('Remove redundant br elements', function() {
+	test.skip('Remove redundant br elements', function() {
 		var parser, root, schema = new tinymce.html.Schema();
 
 		expect(1);
@@ -336,7 +336,7 @@
 			'<p>a<span data-mce-type="bookmark"></span><br></p>'
 		);
 		equal(serializer.serialize(root), '<p>a</p><p>a<br />b</p><p>a<br /><br /></p><p>a<br /><br /></p><p>a</p>', 'Remove traling br elements.');
-	});*/
+	});
 
 	test('Replace br with nbsp when wrapped in two inline elements and one block', function() {
 		var parser, root, schema = new tinymce.html.Schema();
@@ -480,13 +480,13 @@
 	});
 
 	/* Skip this test as contradictory to https://github.com/Shopify/shopify/pull/8208 */
-	/*test('Invalid inline element with space before', function() {
+	test.skip('Invalid inline element with space before', function() {
 		var parser, root, schema = new tinymce.html.Schema();
 
 		parser = new tinymce.html.DomParser({}, schema);
 		root = parser.parse('<p><span>1</span> <strong>2</strong></p>');
 		equal(serializer.serialize(root), '<p>1 <strong>2</strong></p>');
-	});*/
+	});
 
 	test('Valid classes', function() {
 		var parser, root, schema = new tinymce.html.Schema({valid_classes: 'classA classB'});
@@ -504,7 +504,8 @@
 		equal(serializer.serialize(root), '<p class="classA classB"><strong class="classA classB">a</strong></p>');
 	});
 
-	test('Remove empty list blocks', function() {
+	/* Skip this test as contradictory to https://github.com/Shopify/shopify/pull/8208 */
+	test.skip('Remove empty list blocks', function() {
 		var parser, root, schema = new tinymce.html.Schema();
 
 		parser = new tinymce.html.DomParser({}, schema);
@@ -512,7 +513,8 @@
 		equal(serializer.serialize(root), '');
 	});
 
-	test('Preserve space in inline span', function() {
+	/* Skip this test as contradictory to https://github.com/Shopify/shopify/pull/8208 */
+	test.skip('Preserve space in inline span', function() {
 		var parser, root, schema = new tinymce.html.Schema();
 
 		parser = new tinymce.html.DomParser({}, schema);

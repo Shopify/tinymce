@@ -58,6 +58,11 @@
 		window.global_test_results = results;
 	});
 
+	/* Custom skip override addition */
+	QUnit.test.skip = function( testName, expected, callback, async ) {
+		console.log('Test skipped:', testName);
+	};
+
 	window.module = function(name, settings) {
 		settings = settings || {};
 
