@@ -675,9 +675,12 @@ define("tinymce/Editor", [
 			ifr.onload = function() {
 				ifr.onload = null;
 				self.fire("load");
+
+				if(settings.iframe_src)
+					self.initContentBody();
 			};
 
-			DOM.setAttrib(ifr, "src", url || 'javascript:""');
+			DOM.setAttrib(ifr, "src", settings.iframe_src || url || 'javascript:""');
 
 			self.contentAreaContainer = o.iframeContainer;
 			self.iframeElement = ifr;
@@ -686,7 +689,7 @@ define("tinymce/Editor", [
 
 			// Try accessing the document this will fail on IE when document.domain is set to the same as location.hostname
 			// Then we have to force domain relaxing using the domainRelaxUrl approach very ugly!!
-			if (ie) {
+			if (ie && !settings.iframe_src) {
 				try {
 					self.getDoc();
 				} catch (e) {
@@ -702,7 +705,7 @@ define("tinymce/Editor", [
 			self.getElement().style.display = 'none';
 			DOM.setAttrib(self.id, 'aria-hidden', true);
 
-			if (!url) {
+			if (!url && !settings.iframe_src) {
 				self.initContentBody();
 			}
 
