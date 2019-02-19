@@ -38941,7 +38941,32 @@ define("tinymce/Editor", [
 			}
 
 			ifr.onload = function() {
+				// Try accessing the document this will fail on IE when document.domain is set to the same as location.hostname
+				// Then we have to force domain relaxing using the domainRelaxUrl approach very ugly!!
+				if (ie) {
+					try {
+						self.getDoc();
+					} catch (e) {
+						n.src = url = domainRelaxUrl;
+					}
+				}
+
+				if (o.editorContainer) {
+					DOM.get(o.editorContainer).style.display = self.orgDisplay;
+					self.hidden = DOM.isHidden(o.editorContainer);
+				}
+
+				self.getElement().style.display = 'none';
+				DOM.setAttrib(self.id, 'aria-hidden', true);
+
+				if (!url) {
+					self.initContentBody();
+				}
+
+				// Cleanup
+				elm = n = o = null;
 				ifr.onload = null;
+
 				self.fire("load");
 			};
 
@@ -38949,30 +38974,6 @@ define("tinymce/Editor", [
 			self.iframeElement = ifr;
 
 			n = DOM.add(o.iframeContainer, ifr);
-
-			// Try accessing the document this will fail on IE when document.domain is set to the same as location.hostname
-			// Then we have to force domain relaxing using the domainRelaxUrl approach very ugly!!
-			if (ie) {
-				try {
-					self.getDoc();
-				} catch (e) {
-					n.src = url = domainRelaxUrl;
-				}
-			}
-
-			if (o.editorContainer) {
-				DOM.get(o.editorContainer).style.display = self.orgDisplay;
-				self.hidden = DOM.isHidden(o.editorContainer);
-			}
-
-			self.getElement().style.display = 'none';
-			DOM.setAttrib(self.id, 'aria-hidden', true);
-
-			if (!url) {
-				self.initContentBody();
-			}
-
-			elm = n = o = null; // Cleanup
 		},
 
 		/**
