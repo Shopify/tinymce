@@ -38916,9 +38916,7 @@ define("tinymce/Editor", [
 				}
 			}
 
-			// Create iframe
-			// TODO: ACC add the appropriate description on this.
-			var ifr = DOM.create('iframe', {
+			var options = Object.assign({
 				id: self.id + "_ifr",
 				//src: url || 'about:blank', // Workaround for HTTPS warning in IE6/7
 				frameBorder: '0',
@@ -38932,14 +38930,20 @@ define("tinymce/Editor", [
 					height: h,
 					display: 'block' // Important for Gecko to render the iframe correctly
 				}
-			});
+			}, settings.iframeAttributes);
+
+			// Create iframe
+			// TODO: ACC add the appropriate description on this.
+			var ifr = DOM.create('iframe', options);
+
+			if (!options.src) {
+				DOM.setAttrib(ifr, "src", url || 'about:blank');
+			}
 
 			ifr.onload = function() {
 				ifr.onload = null;
 				self.fire("load");
 			};
-
-			DOM.setAttrib(ifr, "src", url || 'about:blank');
 
 			self.contentAreaContainer = o.iframeContainer;
 			self.iframeElement = ifr;
