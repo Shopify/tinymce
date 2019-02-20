@@ -38916,9 +38916,7 @@ define("tinymce/Editor", [
 				}
 			}
 
-			// Create iframe
-			// TODO: ACC add the appropriate description on this.
-			var ifr = DOM.create('iframe', {
+			var options = Object.assign({
 				id: self.id + "_ifr",
 				//src: url || 'about:blank', // Workaround for HTTPS warning in IE6/7
 				frameBorder: '0',
@@ -38932,43 +38930,50 @@ define("tinymce/Editor", [
 					height: h,
 					display: 'block' // Important for Gecko to render the iframe correctly
 				}
-			});
+			}, settings.iframeAttributes);
+
+			// Create iframe
+			// TODO: ACC add the appropriate description on this.
+			var ifr = DOM.create('iframe', options);
+
+			if (!options.src) {
+				DOM.setAttrib(ifr, "src", url || 'about:blank');
+			}
 
 			ifr.onload = function() {
+				// Try accessing the document this will fail on IE when document.domain is set to the same as location.hostname
+				// Then we have to force domain relaxing using the domainRelaxUrl approach very ugly!!
+				if (ie) {
+					try {
+						self.getDoc();
+					} catch (e) {
+						n.src = url = domainRelaxUrl;
+					}
+				}
+
+				if (o.editorContainer) {
+					DOM.get(o.editorContainer).style.display = self.orgDisplay;
+					self.hidden = DOM.isHidden(o.editorContainer);
+				}
+
+				self.getElement().style.display = 'none';
+				DOM.setAttrib(self.id, 'aria-hidden', true);
+
+				if (!url) {
+					self.initContentBody();
+				}
+
+				// Cleanup
+				elm = n = o = null;
 				ifr.onload = null;
+
 				self.fire("load");
 			};
-
-			DOM.setAttrib(ifr, "src", url || 'about:blank');
 
 			self.contentAreaContainer = o.iframeContainer;
 			self.iframeElement = ifr;
 
 			n = DOM.add(o.iframeContainer, ifr);
-
-			// Try accessing the document this will fail on IE when document.domain is set to the same as location.hostname
-			// Then we have to force domain relaxing using the domainRelaxUrl approach very ugly!!
-			if (ie) {
-				try {
-					self.getDoc();
-				} catch (e) {
-					n.src = url = domainRelaxUrl;
-				}
-			}
-
-			if (o.editorContainer) {
-				DOM.get(o.editorContainer).style.display = self.orgDisplay;
-				self.hidden = DOM.isHidden(o.editorContainer);
-			}
-
-			self.getElement().style.display = 'none';
-			DOM.setAttrib(self.id, 'aria-hidden', true);
-
-			if (!url) {
-				self.initContentBody();
-			}
-
-			elm = n = o = null; // Cleanup
 		},
 
 		/**
